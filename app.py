@@ -29,6 +29,11 @@ if uploaded_file:
         Average_Duration=("Duration", lambda x: pd.to_numeric(x.str.extract(r"(\d+\.?\d*)")[0], errors="coerce").mean())
     ).reset_index()
 
+    df_company_avg = df.groupby("Work Type").agg(
+        Total_Jobs=("WO#", "nunique"),
+        Average_Duration=("Duration", lambda x: pd.to_numeric(x.str.extract(r"(\d+\.?\d*)")[0], errors="coerce").mean())
+    ).reset_index()
+
     work_types = sorted(df["Work Type"].dropna().unique())
     technicians = sorted(df["Techinician"].dropna().unique())
 
@@ -65,6 +70,18 @@ if uploaded_file:
 
     st.altair_chart(chart1, use_container_width=True)
     st.altair_chart(chart2, use_container_width=True)
+
+    st.subheader("🏢 Company Average Chart by Work Type")
+
+    filtered_company_avg = df_company_avg[df_company_avg["Work Type"].isin(selected_types)]
+
+    chart3 = alt.Chart(filtered_company_avg).mark_bar().encode(
+        x="Work Type:N",
+        y="Average_Duration:Q",
+        tooltip=["Work Type", "Average_Duration"]
+    ).properties(title="Company Average Duration by Work Type")
+
+    st.altair_chart(chart3, use_container_width=True)
 
     st.subheader("📤 Export Filtered Data")
     csv = filtered_overall.to_csv(index=False).encode("utf-8")
