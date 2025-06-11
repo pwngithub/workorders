@@ -1,0 +1,29 @@
+
+import streamlit as st
+import pandas as pd
+
+st.set_page_config(page_title="Tech Workflow Summary", layout="wide")
+
+st.title("📊 Tech Daily Summary by Work Type")
+
+uploaded_file = st.file_uploader("Upload Technician Workflow CSV", type=["csv"])
+
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+    df["Date When"] = pd.to_datetime(df["Date When"], errors="coerce")
+    df = df.dropna(subset=["Date When"])
+    df["Day"] = df["Date When"].dt.date
+
+    df_summary = df.groupby(["Techinician", "Day", "Work Type"]).agg(
+        Jobs_Completed=("WO#", "nunique"),
+        Total_Entries=("WO#", "count"),
+        Unique_Statuses=("Tech Status", pd.Series.nunique),
+        Average_Duration=("Duration", lambda x: pd.to_numeric(x.str.extract(r"(\d+\.?\d*)")[0], errors="coerce").mean())
+    ).reset_index()
+
+    work_types = df_summary["Work Type"].unique()
+    selected_types = st.multiselect("Filter by Work Type", work_types, default=list(work_types))
+
+    filtered_df = df_summary[df_summary["Work Type"].isin(selected_types)]
+
+    st.dataframe(filtered_df, use_container_width=True)
