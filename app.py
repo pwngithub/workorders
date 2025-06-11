@@ -28,12 +28,13 @@ if uploaded_file:
         Average_Duration=("Duration", lambda x: pd.to_numeric(x.str.extract(r"(\d+\.?\d*)")[0], errors="coerce").mean())
     ).reset_index()
 
-    st.subheader("📅 Daily Summary by Work Type")
     work_types = df_daily["Work Type"].unique()
     selected_types = st.multiselect("Filter by Work Type", work_types, default=list(work_types))
 
+    st.subheader("📅 Daily Summary by Work Type")
     filtered_daily = df_daily[df_daily["Work Type"].isin(selected_types)]
     st.dataframe(filtered_daily, use_container_width=True)
 
     st.subheader("📈 Overall Average Summary by Work Type")
-    st.dataframe(df_overall, use_container_width=True)
+    filtered_overall = df_overall[df_overall["Work Type"].isin(selected_types)]
+    st.dataframe(filtered_overall, use_container_width=True)
